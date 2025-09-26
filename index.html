@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Juego: Ciudadanía Digital Responsable</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #6dd5fa, #2980b9);
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 650px;
+      margin: 30px auto;
+      padding: 20px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    h1, h2 {
+      margin-bottom: 15px;
+    }
+    button {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      margin-top: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #2ecc71;
+    }
+    .hidden { display: none; }
+    .emoji {
+      font-size: 60px;
+      margin: 10px auto;
+      display: block;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #3498db;
+      margin: 8px 0;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    li:hover { background: #2980b9; }
+    #ranking ol { text-align: left; margin-top: 20px; }
+    #mensaje {
+      margin-top: 15px;
+      font-style: italic;
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    #timer {
+      font-size: 18px;
+      margin: 10px 0;
+      font-weight: bold;
+      color: #ffeb3b;
+    }
+  </style>
+</head>
+<body>
+  <!-- Registro -->
+  <div class="container" id="registro">
+    <h1>Ciudadanía Digital Responsable</h1>
+    <p>Regístrate para comenzar el juego</p>
+    <input type="text" id="nombreJugador" placeholder="Ingresa tu nombre" />
+    <br>
+    <button onclick="iniciarJuego()">Comenzar</button>
+  </div>
+
+  <!-- Juego -->
+  <div class="container hidden" id="juego">
+    <h2 id="saludo"></h2>
+    <span class="emoji" id="emojiPersonaje">👩‍💻</span>
+    <div id="pregunta"></div>
+    <div id="timer"></div>
+    <ul id="opciones"></ul>
+    <div id="mensaje" class="hidden"></div>
+  </div>
+
+  <!-- Final -->
+  <div class="container hidden" id="final">
+    <h2>¡Juego terminado! 🎉</h2>
+    <p id="resultado"></p>
+    <button onclick="mostrarRanking()">Ver Ranking</button>
+  </div>
+
+  <!-- Ranking -->
+  <div class="container hidden" id="ranking">
+    <h2>Ranking de Jugadores 🏆</h2>
+    <ol id="listaRanking"></ol>
+    <button onclick="reiniciar()">Jugar de nuevo</button>
+  </div>
+
+  <script>
+    const preguntas = [
+      {texto:"Si ves un comentario ofensivo en redes sociales, ¿qué deberías hacer?",
+       opciones:[{texto:"Ignorar o reportar el comentario",correcta:true},
+                 {texto:"Responder con otro insulto",correcta:false},
+                 {texto:"Compartirlo para burlarse",correcta:false}],
+       emoji:"👮‍♀️", consejo:"Siempre reporta o ignora los comentarios ofensivos. Responder con violencia solo empeora la situación.", dificultad:"fácil"},
+      {texto:"La huella digital es:",
+       opciones:[{texto:"Las publicaciones, fotos y datos que dejas en internet",correcta:true},
+                 {texto:"Tus zapatos favoritos",correcta:false},
+                 {texto:"Un videojuego famoso",correcta:false}],
+       emoji:"🧑‍💻", consejo:"Todo lo que compartes en internet forma tu huella digital y afecta tu reputación.", dificultad:"fácil"},
+      {texto:"¿Cuál es un uso ético de internet?",
+       opciones:[{texto:"Dar créditos al autor de la información",correcta:true},
+                 {texto:"Copiar y pegar trabajos sin citar",correcta:false},
+                 {texto:"Compartir información falsa",correcta:false}],
+       emoji:"🧑‍🏫", consejo:"Usar internet de forma ética significa respetar el trabajo de los demás y siempre citar tus fuentes.", dificultad:"media"},
+      {texto:"Respetar la diversidad en línea significa:",
+       opciones:[{texto:"Aceptar diferentes opiniones e identidades",correcta:true},
+                 {texto:"Burlarse de quien piensa distinto",correcta:false},
+                 {texto:"Excluir a los demás",correcta:false}],
+       emoji:"🧑‍🎓", consejo:"La convivencia digital responsable se basa en el respeto y la inclusión. ¡Todos merecemos un espacio seguro!", dificultad:"media"},
+      {texto:"Si recibes un mensaje sospechoso con un enlace desconocido, ¿qué deberías hacer?",
+       opciones:[{texto:"No abrirlo y reportarlo",correcta:true},
+                 {texto:"Abrirlo para ver qué es",correcta:false},
+                 {texto:"Compartirlo con tus amigos",correcta:false}],
+       emoji:"🔒", consejo:"Nunca abras enlaces sospechosos. Pueden ser intentos de phishing que ponen en riesgo tu seguridad.", dificultad:"difícil"},
+      {texto:"¿Cuál de estas acciones afecta negativamente tu reputación en línea?",
+       opciones:[{texto:"Publicar comentarios ofensivos",correcta:true},
+                 {texto:"Compartir información confiable",correcta:false},
+                 {texto:"Respetar a otros usuarios",correcta:false}],
+       emoji:"🌐", consejo:"Tu reputación en línea es como una huella permanente. Piensa antes de publicar algo ofensivo.", dificultad:"difícil"},
+      {texto:"¿Qué significa la netiqueta en la ciudadanía digital?",
+       opciones:[{texto:"Conjunto de normas de respeto y comportamiento en internet",correcta:true},
+                 {texto:"Un tipo de virus informático",correcta:false},
+                 {texto:"Una red social poco conocida",correcta:false}],
+       emoji:"📘", consejo:"La netiqueta ayuda a mantener una convivencia digital basada en el respeto mutuo.", dificultad:"media"},
+      {texto:"¿Qué deberías hacer antes de compartir una noticia en redes sociales?",
+       opciones:[{texto:"Verificar que provenga de una fuente confiable",correcta:true},
+                 {texto:"Compartirla inmediatamente",correcta:false},
+                 {texto:"Editar el título para hacerlo más llamativo",correcta:false}],
+       emoji:"📰", consejo:"Siempre verifica la fuente antes de compartir información, así evitas la desinformación.", dificultad:"media"},
+      {texto:"Un ejemplo de ciberacoso es:",
+       opciones:[{texto:"Enviar mensajes ofensivos repetidamente",correcta:true},
+                 {texto:"Felicitaciones en público",correcta:false},
+                 {texto:"Dar un 'me gusta' a una publicación",correcta:false}],
+       emoji:"🚨", consejo:"El ciberacoso es un problema grave. Denuncia y apoya a quienes lo sufren.", dificultad:"difícil"},
+      {texto:"Si publicas información personal como tu dirección en internet:",
+       opciones:[{texto:"Te expones a riesgos de seguridad",correcta:true},
+                 {texto:"Ganas más amigos en línea",correcta:false},
+                 {texto:"Apareces en más búsquedas",correcta:false}],
+       emoji:"⚠️", consejo:"Nunca publiques información personal sensible. Protege tu privacidad.", dificultad:"difícil"}
+    ];
+
+    let jugador = "";
+    let puntaje = 0;
+    let indice = 0;
+    let tiempoRestante = 0;
+    let temporizador;
+    let tiempoInicial = 0;
+    let ganoExtra = false;
+
+    function iniciarJuego() {
+      const nombre = document.getElementById("nombreJugador").value.trim();
+      if (nombre === "") {
+        alert("Por favor ingresa tu nombre");
+        return;
+      }
+      jugador = nombre;
+      document.getElementById("registro").classList.add("hidden");
+      document.getElementById("juego").classList.remove("hidden");
+      document.getElementById("saludo").innerText = "¡Bienvenido, " + jugador + "!";
+      mostrarPregunta();
+    }
+
+    function mostrarPregunta() {
+      if (indice >= preguntas.length) {
+        finalizarJuego();
+        return;
+      }
+
+      const q = preguntas[indice];
+      document.getElementById("pregunta").innerText = q.texto;
+      document.getElementById("emojiPersonaje").innerText = q.emoji;
+      document.getElementById("mensaje").classList.add("hidden");
+
+      if (q.dificultad === "fácil") tiempoRestante = 5;
+      if (q.dificultad === "media") tiempoRestante = 7;
+      if (q.dificultad === "difícil") tiempoRestante = 10;
+
+      tiempoInicial = tiempoRestante;
+      actualizarTimer();
+
+      clearInterval(temporizador);
+      temporizador = setInterval(() => {
+        tiempoRestante--;
+        actualizarTimer();
+        if (tiempoRestante <= 0) {
+          clearInterval(temporizador);
+          verificarRespuesta(false, "⏰ Se acabó el tiempo. La próxima vez responde más rápido.\n" + q.consejo, false);
+        }
+      }, 1000);
+
+      const opcionesUl = document.getElementById("opciones");
+      opcionesUl.innerHTML = "";
+
+      const opcionesMezcladas = [...q.opciones].sort(() => Math.random() - 0.5);
+      opcionesMezcladas.forEach(op => {
+        const li = document.createElement("li");
+        li.innerText = op.texto;
+        li.onclick = () => {
+          clearInterval(temporizador);
+          verificarRespuesta(op.correcta, q.consejo, true);
+        };
+        opcionesUl.appendChild(li);
+      });
+    }
+
+    function actualizarTimer() {
+      document.getElementById("timer").innerText = "⏳ Tiempo restante: " + tiempoRestante + "s";
+    }
+
+    function verificarRespuesta(correcta, consejo, respondio) {
+      const mensajeDiv = document.getElementById("mensaje");
+
+      if (correcta && respondio) {
+        puntaje++;
+        if (tiempoRestante > tiempoInicial / 2) {
+          puntaje++;
+          ganoExtra = true;
+          mensajeDiv.innerText = "✅ ¡Correcto! " + consejo + " ⚡ ¡Respuesta rápida! Punto extra ganado.";
+        } else {
+          mensajeDiv.innerText = "✅ ¡Correcto! " + consejo;
+        }
+      } else if (!correcta && respondio) {
+        mensajeDiv.innerText = "❌ Respuesta incorrecta. Intenta nuevamente la próxima vez.\n" + consejo;
+      } else {
+        mensajeDiv.innerText = consejo;
+      }
+
+      mensajeDiv.classList.remove("hidden");
+
+      setTimeout(() => {
+        indice++;
+        mostrarPregunta();
+      }, 2500);
+    }
+
+    function finalizarJuego() {
+      document.getElementById("juego").classList.add("hidden");
+      document.getElementById("final").classList.remove("hidden");
+      let mensajeFinal = "";
+      if (puntaje >= preguntas.length * 1.5 / 2) {
+        mensajeFinal = "🌟 ¡Excelente! Eres un verdadero ciudadano digital responsable.";
+      } else if (puntaje >= preguntas.length / 2) {
+        mensajeFinal = "👍 Muy bien, pero aún puedes mejorar tu responsabilidad digital.";
+      } else {
+        mensajeFinal = "💡 Necesitas practicar más sobre ciudadanía digital.";
+      }
+      document.getElementById("resultado").innerText = 
+        jugador + ", tu puntaje es: " + puntaje + "/" + (preguntas.length * 2) + ". " + mensajeFinal;
+
+      let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+      ranking.push({nombre: jugador, puntaje: puntaje, extra: ganoExtra});
+      ranking.sort((a, b) => b.puntaje - a.puntaje);
+      localStorage.setItem("ranking", JSON.stringify(ranking));
+    }
+
+    function mostrarRanking() {
+      document.getElementById("final").classList.add("hidden");
+      document.getElementById("ranking").classList.remove("hidden");
+      const lista = document.getElementById("listaRanking");
+      lista.innerHTML = "";
+      let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+      ranking.slice(0, 5).forEach(r => {
+        const li = document.createElement("li");
+        let simbolo = r.extra ? " ⚡" : "";
+        li.innerText = r.nombre + simbolo + " - " + r.puntaje + " puntos";
+        lista.appendChild(li);
+      });
+    }
+
+    function reiniciar() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
